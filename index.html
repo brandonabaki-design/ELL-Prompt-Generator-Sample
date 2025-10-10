@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELL Resource Prompt Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #02040A;
+            --bg-panel: rgba(10, 16, 30, 0.7);
+            --accent-primary: #00D9FF;
+            --accent-secondary: #D800FF;
+            --accent-tertiary: #39FF14;
+            --text-primary: #E5E7EB;
+            --text-secondary: #9CA3AF;
+            --border-color: rgba(0, 217, 255, 0.2);
+            --border-hover: rgba(0, 217, 255, 0.6);
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex-grow: 1;
+        }
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        h1, h2, .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.3), 0 0 20px rgba(216, 0, 255, 0.2);
+        }
+        .panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .form-label {
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+        .form-input, .form-select {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            padding: 0.5rem;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 15px rgba(216, 0, 255, 0.4);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary));
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.6);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+        .output-box {
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        #watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            color: rgba(229, 231, 235, 0.12);
+            pointer-events: none;
+            z-index: 1000;
+            font-weight: 900;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .blurred-text {
+            filter: blur(8px);
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="watermark">Brandon A. Baki - Confidential Sample</div>
+    <div id="ip-banner" class="bg-black/50 text-center py-2 text-sm text-slate-300 backdrop-blur-sm">This is the intellectual property of Brandon Abdul Baki</div>
+    <main>
+        <div id="particle-container"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <header class="text-center mb-10">
+                <h1 class="text-4xl md:text-5xl font-black text-white mb-3">ELL Resource Prompt Generator</h1>
+                <p class="text-lg text-slate-300">Use the RTCF framework to build the perfect prompt for your classroom needs.</p>
+            </header>
+
+            <div class="panel p-6 md:p-8">
+                <form id="prompt-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Role -->
+                    <div class="md:col-span-2">
+                        <label for="role" class="form-label block mb-2">ROLE: Who is Gemini?</label>
+                        <input type="text" id="role" list="role-list" class="form-input" placeholder="e.g., an expert ESL web developer">
+                        <datalist id="role-list">
+                            <option value="an expert ESL web developer"></option>
+                            <option value="a creative elementary school teacher"></option>
+                            <option value="a helpful teacher's assistant"></option>
+                            <option value="a high school subject matter expert"></option>
+                        </datalist>
+                    </div>
+
+                    <!-- Task -->
+                    <div>
+                        <label for="task" class="form-label block mb-2">TASK: What should it create?</label>
+                        <input type="text" id="task" list="task-list" class="form-input" placeholder="e.g., bilingual word wall">
+                         <datalist id="task-list">
+                            <option value="bilingual word wall"></option>
+                            <option value="interactive story"></option>
+                            <option value="simplified text with glossary"></option>
+                            <option value="listening quiz"></option>
+                            <option value="interactive rubric"></option>
+                        </datalist>
+                    </div>
+                    
+                    <!-- Format -->
+                    <div>
+                        <label for="format" class="form-label block mb-2">FORMAT: How should it look?</label>
+                        <input type="text" id="format" class="form-input" placeholder="e.g., a grid of clickable cards">
+                    </div>
+
+                    <hr class="md:col-span-2 border-slate-600 my-4">
+
+                    <!-- Context -->
+                    <h2 class="md:col-span-2 text-2xl font-orbitron text-center mb-2">CONTEXT: The Details</h2>
+                    
+                    <div>
+                        <label for="grade-level" class="form-label block mb-2">Grade Level</label>
+                        <input type="text" id="grade-level" list="grade-level-list" class="form-input" placeholder="e.g., Grade 4">
+                        <datalist id="grade-level-list">
+                            <option value="Kindergarten"></option>
+                            <option value="Grade 1"></option>
+                            <option value="Grade 2"></option>
+                            <option value="Grade 3"></option>
+                            <option value="Grade 4"></option>
+                            <option value="Grade 5"></option>
+                            <option value="Grade 6"></option>
+                            <option value="Grade 7"></option>
+                            <option value="Grade 8"></option>
+                            <option value="Grade 9"></option>
+                            <option value="Grade 10"></option>
+                            <option value="Grade 11"></option>
+                            <option value="Grade 12"></option>
+                        </datalist>
+                    </div>
+                    
+                    <div>
+                        <label for="proficiency" class="form-label block mb-2">Student Proficiency Level</label>
+                        <input type="text" id="proficiency" list="proficiency-list" class="form-input" placeholder="e.g., newcomer">
+                        <datalist id="proficiency-list">
+                            <option value="newcomer"></option>
+                            <option value="beginner"></option>
+                            <option value="intermediate"></option>
+                            <option value="advanced"></option>
+                        </datalist>
+                    </div>
+
+                    <div>
+                        <label for="l1" class="form-label block mb-2">Student L1 (Home Language)</label>
+                        <input type="text" id="l1" list="l1-list" class="form-input" placeholder="e.g., Spanish">
+                        <datalist id="l1-list">
+                            <option value="Spanish"></option>
+                            <option value="Arabic"></option>
+                            <option value="Chinese (Mandarin)"></option>
+                            <option value="Vietnamese"></option>
+                            <option value="Tagalog"></option>
+                            <option value="Haitian Creole"></option>
+                        </datalist>
+                    </div>
+
+                    <div>
+                        <label for="l2" class="form-label block mb-2">Student L2 (Target Language)</label>
+                        <input type="text" id="l2" list="l2-list" class="form-input" value="English" placeholder="e.g., English">
+                         <datalist id="l2-list">
+                            <option value="English"></option>
+                            <option value="Spanish"></option>
+                            <option value="French"></option>
+                            <option value="German"></option>
+                        </datalist>
+                    </div>
+
+                    <div>
+                        <label for="subject" class="form-label block mb-2">Subject</label>
+                        <input type="text" id="subject" list="subject-list" class="form-input" placeholder="e.g., Science">
+                        <datalist id="subject-list">
+                            <option value="English Language Arts"></option>
+                            <option value="Math"></option>
+                            <option value="Science"></option>
+                            <option value="History"></option>
+                            <option value="Art"></option>
+                            <option value="Music"></option>
+                            <option value="Physical Education"></option>
+                        </datalist>
+                    </div>
+
+                    <div>
+                        <label for="time-required" class="form-label block mb-2">Time Required for Activity</label>
+                        <input type="text" id="time-required" list="time-list" class="form-input" placeholder="e.g., 20 minutes">
+                        <datalist id="time-list">
+                            <option value="5 minutes"></option>
+                            <option value="10 minutes"></option>
+                            <option value="15 minutes"></option>
+                            <option value="20 minutes"></option>
+                            <option value="25 minutes"></option>
+                            <option value="30 minutes"></option>
+                        </datalist>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="lesson" class="form-label block mb-2">Lesson Topic</label>
+                        <input type="text" id="lesson" class="form-input" placeholder="e.g., The Water Cycle">
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="md:col-span-2 mt-6">
+                        <button type="button" id="generate-btn" class="btn-primary w-full py-3 text-lg font-bold">Generate Prompt</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Output Section -->
+            <div id="output-section" class="panel p-6 md:p-8 mt-10 hidden">
+                <h2 class="text-2xl font-orbitron text-center mb-4">Your Generated Prompt</h2>
+                <div class="output-box p-4 rounded-lg font-mono text-sm">
+                    <p id="prompt-output"></p>
+                </div>
+                <button type="button" id="copy-btn" class="btn-secondary w-full py-2 mt-4">Copy Prompt</button>
+            </div>
+        </div>
+    </main>
+    <footer id="ip-footer" class="bg-black/50 text-center py-2 text-sm text-slate-300 backdrop-blur-sm">This is the intellectual property of Brandon Abdul Baki</footer>
+
+    <!-- Floating Contact Button -->
+    <div id="contact-flyout-container" class="fixed bottom-6 right-6 z-50">
+        <div id="contact-flyout" class="absolute bottom-full right-0 mb-2 w-64 panel p-4 hidden transition-all duration-300 ease-in-out transform translate-y-2 opacity-0">
+            <h3 class="font-bold text-center mb-3 text-lg font-orbitron">Contact Me</h3>
+            <div class="flex flex-col space-y-2">
+                <button class="contact-action btn-secondary py-2" data-type="copy" data-value="+971507896519">Copy Phone Number</button>
+                <button class="contact-action btn-secondary py-2" data-type="copy" data-value="brandon.abaki@gmail.com">Copy Email Address</button>
+                <a href="https://www.linkedin.com/in/brandon-abdul-baki-19a81735b/" target="_blank" rel="noopener noreferrer" class="contact-action btn-secondary py-2 text-center">Message on LinkedIn</a>
+            </div>
+        </div>
+        <button type="button" id="contact-btn" class="btn-primary px-6 py-3 font-bold text-lg w-full">Contact Me</button>
+    </div>
+
+    <!-- Confidential Modal -->
+    <div id="confidential-modal" class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="panel p-8 max-w-md w-full relative mx-4">
+            <button id="close-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            <h2 class="text-2xl font-orbitron text-center mb-4">Confidential Sample</h2>
+            <p class="text-center text-slate-300 mb-6">This is a sample version of the tool. To access the full version, please contact the creator.</p>
+            <div class="flex flex-col space-y-3">
+                 <button class="contact-action btn-secondary py-2 text-base" data-type="copy" data-value="+971507896519">Copy Phone Number</button>
+                 <button class="contact-action btn-secondary py-2 text-base" data-type="copy" data-value="brandon.abaki@gmail.com">Copy Email Address</button>
+                 <a href="https://www.linkedin.com/in/brandon-abdul-baki-19a81735b/" target="_blank" rel="noopener noreferrer" class="contact-action btn-secondary py-2 text-base text-center">Message on LinkedIn</a>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // This function checks for the presence of essential page elements.
+            // It is critical for page rendering and should not be modified or removed.
+            function validateCoreComponents() {
+                const headerBanner = document.getElementById('ip-banner');
+                const footerBanner = document.getElementById('ip-footer');
+                const expectedText = 'This is the intellectual property of Brandon Abdul Baki';
+                
+                if (!headerBanner || headerBanner.textContent.trim() !== expectedText || !footerBanner || footerBanner.textContent.trim() !== expectedText) {
+                    const form = document.getElementById('prompt-form');
+                    if(form) {
+                        form.innerHTML = '<div class="text-center text-red-500 font-bold p-8">Error: Critical component missing. Page functionality has been disabled. Please restore the original page content to continue.</div>';
+                    }
+                    return false;
+                }
+                return true;
+            }
+
+            if (!validateCoreComponents()) {
+                return; // Stop further script execution if validation fails
+            }
+
+            // Helper function for clipboard copying
+            function copyToClipboard(text, buttonElement) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.top = '-9999px';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const originalText = buttonElement.textContent;
+                    buttonElement.textContent = 'Copied!';
+                    setTimeout(() => {
+                        buttonElement.textContent = originalText;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            // Logic for Contact Flyout
+            const contactBtn = document.getElementById('contact-btn');
+            const contactFlyout = document.getElementById('contact-flyout');
+            
+            if(contactBtn && contactFlyout) {
+                contactBtn.addEventListener('click', () => {
+                    const isHidden = contactFlyout.classList.contains('hidden');
+                    if(isHidden) {
+                        contactFlyout.classList.remove('hidden');
+                        setTimeout(() => {
+                           contactFlyout.classList.remove('opacity-0', 'translate-y-2');
+                        }, 10);
+                    } else {
+                        contactFlyout.classList.add('opacity-0', 'translate-y-2');
+                        setTimeout(() => {
+                           contactFlyout.classList.add('hidden');
+                        }, 300);
+                    }
+                });
+
+                // Close flyout if clicking outside
+                document.addEventListener('click', (event) => {
+                    if (!contactBtn.contains(event.target) && !contactFlyout.contains(event.target)) {
+                         contactFlyout.classList.add('opacity-0', 'translate-y-2');
+                        setTimeout(() => {
+                           contactFlyout.classList.add('hidden');
+                        }, 300);
+                    }
+                });
+            }
+
+            // Reusable logic for contact actions (copy/link)
+            document.querySelectorAll('.contact-action').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const type = this.dataset.type;
+                    const value = this.dataset.value;
+                    if (type === 'copy') {
+                        copyToClipboard(value, this);
+                    }
+                });
+            });
+
+
+            // Modal Logic
+            const confidentialModal = document.getElementById('confidential-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            const showModal = () => confidentialModal && confidentialModal.classList.remove('hidden');
+            const hideModal = () => confidentialModal && confidentialModal.classList.add('hidden');
+            
+            if(closeModalBtn) closeModalBtn.addEventListener('click', hideModal);
+            if(confidentialModal) {
+                 confidentialModal.addEventListener('click', (e) => {
+                    if (e.target === confidentialModal) {
+                        hideModal();
+                    }
+                });
+            }
+
+
+            // Particle background animation
+            const particleContainer = document.getElementById('particle-container');
+            const particleCount = 75;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = `${Math.random() * 2 + 1}px`;
+                particle.style.height = particle.style.width;
+                particle.style.borderRadius = '50%';
+                particle.style.background = `rgba(0, 217, 255, ${Math.random() * 0.5 + 0.2})`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                const duration = Math.random() * 20 + 15;
+                const delay = Math.random() * -20;
+                particle.animate([
+                    { transform: `translateY(0px)` },
+                    { transform: `translateY(-100vh)` }
+                ], {
+                    duration: duration * 1000,
+                    delay: delay * 1000,
+                    iterations: Infinity,
+                    easing: 'linear'
+                });
+                particleContainer.appendChild(particle);
+            }
+
+            // Prompt Generation Logic
+            const generateBtn = document.getElementById('generate-btn');
+            const outputSection = document.getElementById('output-section');
+            const promptOutput = document.getElementById('prompt-output');
+            const copyBtn = document.getElementById('copy-btn');
+
+            if(generateBtn) {
+                // Generate button now shows the modal
+                generateBtn.addEventListener('click', () => {
+                     // Get all values from the form to check if they are filled
+                    const role = document.getElementById('role').value;
+                    const task = document.getElementById('task').value;
+                    const format = document.getElementById('format').value;
+                    const gradeLevel = document.getElementById('grade-level').value;
+                    const proficiency = document.getElementById('proficiency').value;
+                    const l1 = document.getElementById('l1').value;
+                    const l2 = document.getElementById('l2').value;
+                    const subject = document.getElementById('subject').value;
+                    const lesson = document.getElementById('lesson').value;
+                    const timeRequired = document.getElementById('time-required').value;
+                     // Basic validation
+                    if (!role || !task || !gradeLevel || !proficiency || !l1 || !l2 || !subject || !lesson || !timeRequired) {
+                       // Using a custom, non-blocking alert for better UX.
+                        const customAlert = document.createElement('div');
+                        customAlert.textContent = 'Please fill out all fields before generating.';
+                        customAlert.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--accent-secondary); color: white; padding: 1rem 2rem; border-radius: 0.5rem; z-index: 1001; box-shadow: 0 5px 15px rgba(0,0,0,0.3);';
+                        document.body.appendChild(customAlert);
+                        setTimeout(() => {
+                            customAlert.remove();
+                        }, 3000);
+                        return;
+                    }
+
+                    // Build the prompt string
+                    let prompt = `Act as ${role}. Code an HTML file for a ${proficiency}-level ${l2} student in ${gradeLevel} ${subject}. The student's home language is ${l1}.\n\nThe task is to create a resource for a lesson on "${lesson}". Specifically, create a ${task}. The activity should be designed to take approximately ${timeRequired}.`;
+
+                    if (format) {
+                        prompt += ` The format should be ${format}.`;
+                    }
+
+                    prompt += `\n\nThis resource is for an English Language Learner, so it is critical that you include a text-to-speech button for L1 (${l1}) and L2 (${l2}) for all relevant text content. Ensure the design is clean, user-friendly, and appropriate for the specified grade level.`;
+                    
+                    // Display the output and blur it
+                    promptOutput.textContent = prompt;
+                    promptOutput.classList.add('blurred-text');
+                    outputSection.classList.remove('hidden');
+
+                    showModal();
+                });
+            }
+
+            if(copyBtn) {
+                // Copy button functionality (from original prompt output, now unused but kept for potential future use)
+                copyBtn.addEventListener('click', () => {
+                    copyToClipboard(promptOutput.textContent, copyBtn);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
