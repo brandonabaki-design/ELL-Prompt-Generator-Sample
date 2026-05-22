@@ -3,170 +3,470 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate precise, classroom-ready AI prompts for English Language Learners using the RTCF framework (Role, Task, Context, Format).">
     <title>ELL Resource Prompt Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #02040A;
-            --bg-panel: rgba(10, 16, 30, 0.7);
-            --accent-primary: #00D9FF;
-            --accent-secondary: #D800FF;
-            --accent-tertiary: #39FF14;
+            --bg-elevated: #060B17;
+            --bg-panel: rgba(10, 16, 30, 0.65);
+            --bg-input: rgba(0, 0, 0, 0.35);
+            --accent-cyan: #00D9FF;
+            --accent-magenta: #D800FF;
+            --accent-lime: #39FF14;
+            --accent-amber: #FFB400;
             --text-primary: #E5E7EB;
             --text-secondary: #9CA3AF;
-            --border-color: rgba(0, 217, 255, 0.2);
-            --border-hover: rgba(0, 217, 255, 0.6);
+            --text-muted: #6B7280;
+            --border-subtle: rgba(0, 217, 255, 0.18);
+            --border-strong: rgba(0, 217, 255, 0.45);
+            --border-magenta: rgba(216, 0, 255, 0.45);
+        }
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        html {
+            scroll-behavior: smooth;
         }
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 217, 255, 0.12), transparent),
+                radial-gradient(ellipse 60% 50% at 100% 100%, rgba(216, 0, 255, 0.10), transparent),
+                radial-gradient(ellipse 60% 50% at 0% 80%, rgba(57, 255, 20, 0.05), transparent);
+            background-attachment: fixed;
         }
-        main {
-            flex-grow: 1;
-        }
+        main { flex-grow: 1; }
         #particle-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
         }
-        h1, h2, .font-orbitron {
+        h1, h2, h3, .font-orbitron {
             font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0, 217, 255, 0.3), 0 0 20px rgba(216, 0, 255, 0.2);
+            letter-spacing: 0.5px;
+        }
+        .hero-title {
+            background: linear-gradient(135deg, #fff 0%, #00D9FF 50%, #D800FF 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 40px rgba(0, 217, 255, 0.25);
         }
         .panel {
             background: var(--bg-panel);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1rem;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .panel-elevated {
+            background: linear-gradient(180deg, rgba(10, 16, 30, 0.85), rgba(6, 11, 23, 0.85));
+        }
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1rem 0 0.25rem;
+        }
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+        }
+        .section-divider-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .form-label {
-            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-primary);
             font-weight: 500;
+            font-size: 0.875rem;
+            margin-bottom: 0.4rem;
         }
-        .form-input, .form-select {
-            background-color: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
+        .form-label .label-hint {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 400;
+        }
+        .form-input, .form-textarea {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-subtle);
             border-radius: 0.5rem;
-            transition: all 0.3s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.925rem;
+            font-family: inherit;
         }
-        .form-input:focus, .form-select:focus {
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .form-input:hover, .form-textarea:hover {
+            border-color: rgba(0, 217, 255, 0.35);
+        }
+        .form-input:focus, .form-textarea:focus {
             outline: none;
-            border-color: var(--accent-secondary);
-            box-shadow: 0 0 15px rgba(216, 0, 255, 0.4);
+            border-color: var(--accent-magenta);
+            box-shadow: 0 0 0 3px rgba(216, 0, 255, 0.18);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 4.5rem;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            font-size: 0.85rem;
+            line-height: 1.55;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
         }
         .btn-primary {
-            background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary));
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+            background: linear-gradient(135deg, var(--accent-magenta), var(--accent-cyan));
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            border: 1px solid transparent;
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 25px rgba(0, 217, 255, 0.6);
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(0, 217, 255, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+        }
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
         }
         .btn-secondary {
-            background-color: transparent;
-            border: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
-            transition: all 0.3s ease;
         }
-        .btn-secondary:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
+        .btn-secondary:hover:not(:disabled) {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background-color: rgba(0, 217, 255, 0.06);
         }
-        .output-box {
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border-color);
-            white-space: pre-wrap;
-            word-wrap: break-word;
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
         }
-        #watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(3rem, 8vw, 6rem);
-            color: rgba(229, 231, 235, 0.12);
+        .btn-ghost:hover:not(:disabled) {
+            color: var(--accent-cyan);
+            background: rgba(0, 217, 255, 0.06);
+        }
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 999px;
+            background: rgba(0, 217, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+        .stat-chip .chip-value {
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+        .preset-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-subtle);
+            background: rgba(0, 0, 0, 0.25);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-tag:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 217, 255, 0.08);
+        }
+        .output-shell {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            border: 1px solid var(--border-subtle);
+            border-radius: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .output-shell::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.04), transparent 50%);
             pointer-events: none;
-            z-index: 1000;
-            font-weight: 900;
-            white-space: nowrap;
+        }
+        .output-textarea {
+            background: transparent;
+            border: none;
+            width: 100%;
+            min-height: 14rem;
+            padding: 1rem 1.25rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            font-size: 0.875rem;
+            line-height: 1.65;
+            resize: vertical;
+            outline: none;
+            position: relative;
+            z-index: 1;
+        }
+        .output-textarea:focus {
+            box-shadow: inset 0 0 0 1px var(--border-magenta);
+        }
+        .toast-container {
+            position: fixed;
+            top: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.625rem;
+            background: rgba(2, 4, 10, 0.95);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 217, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transform: translateY(-10px);
+            opacity: 0;
+            animation: toastIn 0.25s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 200px;
+            pointer-events: auto;
+        }
+        .toast.toast-success { border-color: rgba(57, 255, 20, 0.5); }
+        .toast.toast-success .toast-icon { color: var(--accent-lime); }
+        .toast.toast-error { border-color: rgba(216, 0, 255, 0.5); }
+        .toast.toast-error .toast-icon { color: var(--accent-magenta); }
+        .toast.toast-info .toast-icon { color: var(--accent-cyan); }
+        .toast.toast-out { animation: toastOut 0.25s ease forwards; }
+        @keyframes toastIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toastOut {
+            to { transform: translateY(-10px); opacity: 0; }
+        }
+        .icon { width: 1rem; height: 1rem; flex-shrink: 0; }
+        .icon-lg { width: 1.25rem; height: 1.25rem; }
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .reveal {
+            animation: reveal 0.5s ease forwards;
+        }
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .recent-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-subtle);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .recent-item:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 217, 255, 0.05);
+        }
+        .recent-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        details summary {
+            cursor: pointer;
+            list-style: none;
             user-select: none;
         }
-        .blurred-text {
-            filter: blur(8px);
-            user-select: none;
+        details summary::-webkit-details-marker { display: none; }
+        details[open] .chevron { transform: rotate(180deg); }
+        .chevron { transition: transform 0.2s ease; }
+        .field-error {
+            border-color: var(--accent-magenta) !important;
+            box-shadow: 0 0 0 3px rgba(216, 0, 255, 0.15) !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+            html { scroll-behavior: auto; }
         }
     </style>
 </head>
 <body>
-    <div id="watermark">Brandon A. Baki - Confidential Sample</div>
-    <div id="ip-banner" class="bg-black/50 text-center py-2 text-sm text-slate-300 backdrop-blur-sm">This is the intellectual property of Brandon Abdul Baki</div>
+    <div id="particle-container" aria-hidden="true"></div>
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
     <main>
-        <div id="particle-container"></div>
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
             <header class="text-center mb-10">
-                <h1 class="text-4xl md:text-5xl font-black text-white mb-3">ELL Resource Prompt Generator</h1>
-                <p class="text-lg text-slate-300">Use the RTCF framework to build the perfect prompt for your classroom needs.</p>
+                <div class="inline-flex items-center gap-2 px-3 py-1 mb-5 rounded-full border border-cyan-400/30 bg-cyan-400/5 text-cyan-300 text-xs font-medium tracking-widest uppercase">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    RTCF Framework
+                </div>
+                <h1 class="hero-title text-4xl sm:text-5xl md:text-6xl font-black mb-4">ELL Resource Prompt Generator</h1>
+                <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                    Build precise, classroom-ready AI prompts for English Language Learners.
+                    Define the <span class="text-cyan-300 font-medium">Role</span>, <span class="text-cyan-300 font-medium">Task</span>, <span class="text-cyan-300 font-medium">Context</span>, and <span class="text-cyan-300 font-medium">Format</span> — generate, refine, ship.
+                </p>
             </header>
 
-            <div class="panel p-6 md:p-8">
-                <form id="prompt-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Role -->
+            <div class="panel panel-elevated p-6 md:p-8">
+                <form id="prompt-form" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5" novalidate>
+
+                    <!-- ROLE -->
                     <div class="md:col-span-2">
-                        <label for="role" class="form-label block mb-2">ROLE: Who is Gemini?</label>
-                        <input type="text" id="role" list="role-list" class="form-input" placeholder="e.g., an expert ESL web developer">
+                        <div class="section-divider">
+                            <span class="section-divider-label">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
+                                Role
+                            </span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="role" class="form-label">
+                            <span>Who is the AI acting as?</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="role" list="role-list" class="form-input" placeholder="e.g., an expert ESL web developer" autocomplete="off">
                         <datalist id="role-list">
                             <option value="an expert ESL web developer"></option>
                             <option value="a creative elementary school teacher"></option>
                             <option value="a helpful teacher's assistant"></option>
                             <option value="a high school subject matter expert"></option>
+                            <option value="an instructional designer specializing in scaffolded language learning"></option>
+                            <option value="a bilingual curriculum coach"></option>
+                            <option value="a children's book illustrator and writer"></option>
                         </datalist>
                     </div>
 
-                    <!-- Task -->
+                    <!-- TASK & FORMAT -->
+                    <div class="md:col-span-2">
+                        <div class="section-divider">
+                            <span class="section-divider-label">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Task &amp; Format
+                            </span>
+                        </div>
+                    </div>
                     <div>
-                        <label for="task" class="form-label block mb-2">TASK: What should it create?</label>
-                        <input type="text" id="task" list="task-list" class="form-input" placeholder="e.g., bilingual word wall">
-                         <datalist id="task-list">
+                        <label for="task" class="form-label">
+                            <span>What should it create?</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="task" list="task-list" class="form-input" placeholder="e.g., bilingual word wall" autocomplete="off">
+                        <datalist id="task-list">
                             <option value="bilingual word wall"></option>
                             <option value="interactive story"></option>
                             <option value="simplified text with glossary"></option>
                             <option value="listening quiz"></option>
                             <option value="interactive rubric"></option>
+                            <option value="vocabulary matching game"></option>
+                            <option value="sentence frames practice"></option>
+                            <option value="picture dictionary"></option>
+                            <option value="reading comprehension activity"></option>
+                            <option value="speaking prompt cards"></option>
+                            <option value="graphic organizer"></option>
                         </datalist>
                     </div>
-                    
-                    <!-- Format -->
                     <div>
-                        <label for="format" class="form-label block mb-2">FORMAT: How should it look?</label>
-                        <input type="text" id="format" class="form-input" placeholder="e.g., a grid of clickable cards">
+                        <label for="format" class="form-label">
+                            <span>How should it look?</span>
+                            <span class="label-hint">Optional</span>
+                        </label>
+                        <input type="text" id="format" list="format-list" class="form-input" placeholder="e.g., a grid of clickable cards" autocomplete="off">
+                        <datalist id="format-list">
+                            <option value="a grid of clickable cards"></option>
+                            <option value="a side-by-side bilingual layout"></option>
+                            <option value="a single-page interactive activity"></option>
+                            <option value="a printable worksheet"></option>
+                            <option value="a step-by-step guided experience"></option>
+                            <option value="a flashcard deck with flip animations"></option>
+                        </datalist>
                     </div>
 
-                    <hr class="md:col-span-2 border-slate-600 my-4">
+                    <!-- CONTEXT -->
+                    <div class="md:col-span-2">
+                        <div class="section-divider">
+                            <span class="section-divider-label">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M9 13h.01M9 17h.01M13 9h.01M13 13h.01M13 17h.01"/></svg>
+                                Context
+                            </span>
+                        </div>
+                    </div>
 
-                    <!-- Context -->
-                    <h2 class="md:col-span-2 text-2xl font-orbitron text-center mb-2">CONTEXT: The Details</h2>
-                    
                     <div>
-                        <label for="grade-level" class="form-label block mb-2">Grade Level</label>
-                        <input type="text" id="grade-level" list="grade-level-list" class="form-input" placeholder="e.g., Grade 4">
+                        <label for="grade-level" class="form-label">
+                            <span>Grade Level</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="grade-level" list="grade-level-list" class="form-input" placeholder="e.g., Grade 4" autocomplete="off">
                         <datalist id="grade-level-list">
+                            <option value="Pre-K"></option>
                             <option value="Kindergarten"></option>
                             <option value="Grade 1"></option>
                             <option value="Grade 2"></option>
@@ -180,61 +480,100 @@
                             <option value="Grade 10"></option>
                             <option value="Grade 11"></option>
                             <option value="Grade 12"></option>
+                            <option value="Adult Learner"></option>
                         </datalist>
                     </div>
-                    
+
                     <div>
-                        <label for="proficiency" class="form-label block mb-2">Student Proficiency Level</label>
-                        <input type="text" id="proficiency" list="proficiency-list" class="form-input" placeholder="e.g., newcomer">
+                        <label for="proficiency" class="form-label">
+                            <span>Student Proficiency</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="proficiency" list="proficiency-list" class="form-input" placeholder="e.g., newcomer" autocomplete="off">
                         <datalist id="proficiency-list">
                             <option value="newcomer"></option>
                             <option value="beginner"></option>
+                            <option value="early intermediate"></option>
                             <option value="intermediate"></option>
+                            <option value="early advanced"></option>
                             <option value="advanced"></option>
                         </datalist>
                     </div>
 
                     <div>
-                        <label for="l1" class="form-label block mb-2">Student L1 (Home Language)</label>
-                        <input type="text" id="l1" list="l1-list" class="form-input" placeholder="e.g., Spanish">
+                        <label for="l1" class="form-label">
+                            <span>Student L1 (Home Language)</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="l1" list="l1-list" class="form-input" placeholder="e.g., Spanish" autocomplete="off">
                         <datalist id="l1-list">
                             <option value="Spanish"></option>
                             <option value="Arabic"></option>
                             <option value="Chinese (Mandarin)"></option>
+                            <option value="Chinese (Cantonese)"></option>
                             <option value="Vietnamese"></option>
                             <option value="Tagalog"></option>
                             <option value="Haitian Creole"></option>
+                            <option value="Portuguese"></option>
+                            <option value="French"></option>
+                            <option value="Russian"></option>
+                            <option value="Ukrainian"></option>
+                            <option value="Korean"></option>
+                            <option value="Japanese"></option>
+                            <option value="Hindi"></option>
+                            <option value="Urdu"></option>
+                            <option value="Somali"></option>
+                            <option value="Pashto"></option>
+                            <option value="Dari"></option>
+                            <option value="Swahili"></option>
+                            <option value="Amharic"></option>
                         </datalist>
                     </div>
 
                     <div>
-                        <label for="l2" class="form-label block mb-2">Student L2 (Target Language)</label>
-                        <input type="text" id="l2" list="l2-list" class="form-input" value="English" placeholder="e.g., English">
-                         <datalist id="l2-list">
+                        <label for="l2" class="form-label">
+                            <span>Student L2 (Target Language)</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="l2" list="l2-list" class="form-input" value="English" placeholder="e.g., English" autocomplete="off">
+                        <datalist id="l2-list">
                             <option value="English"></option>
                             <option value="Spanish"></option>
                             <option value="French"></option>
                             <option value="German"></option>
+                            <option value="Arabic"></option>
+                            <option value="Mandarin"></option>
                         </datalist>
                     </div>
 
                     <div>
-                        <label for="subject" class="form-label block mb-2">Subject</label>
-                        <input type="text" id="subject" list="subject-list" class="form-input" placeholder="e.g., Science">
+                        <label for="subject" class="form-label">
+                            <span>Subject</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="subject" list="subject-list" class="form-input" placeholder="e.g., Science" autocomplete="off">
                         <datalist id="subject-list">
                             <option value="English Language Arts"></option>
                             <option value="Math"></option>
                             <option value="Science"></option>
+                            <option value="Social Studies"></option>
                             <option value="History"></option>
+                            <option value="Geography"></option>
                             <option value="Art"></option>
                             <option value="Music"></option>
                             <option value="Physical Education"></option>
+                            <option value="Health"></option>
+                            <option value="Technology"></option>
+                            <option value="World Languages"></option>
                         </datalist>
                     </div>
 
                     <div>
-                        <label for="time-required" class="form-label block mb-2">Time Required for Activity</label>
-                        <input type="text" id="time-required" list="time-list" class="form-input" placeholder="e.g., 20 minutes">
+                        <label for="time-required" class="form-label">
+                            <span>Activity Duration</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="time-required" list="time-list" class="form-input" placeholder="e.g., 20 minutes" autocomplete="off">
                         <datalist id="time-list">
                             <option value="5 minutes"></option>
                             <option value="10 minutes"></option>
@@ -242,253 +581,600 @@
                             <option value="20 minutes"></option>
                             <option value="25 minutes"></option>
                             <option value="30 minutes"></option>
+                            <option value="45 minutes"></option>
+                            <option value="60 minutes"></option>
+                            <option value="a full class period"></option>
                         </datalist>
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="lesson" class="form-label block mb-2">Lesson Topic</label>
-                        <input type="text" id="lesson" class="form-input" placeholder="e.g., The Water Cycle">
+                        <label for="lesson" class="form-label">
+                            <span>Lesson Topic</span>
+                            <span class="label-hint">Required</span>
+                        </label>
+                        <input type="text" id="lesson" class="form-input" placeholder="e.g., The Water Cycle" autocomplete="off">
                     </div>
 
-                    <!-- Generate Button -->
-                    <div class="md:col-span-2 mt-6">
-                        <button type="button" id="generate-btn" class="btn-primary w-full py-3 text-lg font-bold">Generate Prompt</button>
+                    <!-- ADVANCED OPTIONS -->
+                    <div class="md:col-span-2">
+                        <details class="rounded-lg border border-cyan-400/15 bg-black/20">
+                            <summary class="flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-300 hover:text-cyan-300 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                    Advanced Options
+                                </span>
+                                <svg class="icon chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border-t border-cyan-400/10">
+                                <div class="md:col-span-2">
+                                    <label for="learning-objectives" class="form-label">
+                                        <span>Specific Learning Objectives</span>
+                                        <span class="label-hint">Optional</span>
+                                    </label>
+                                    <textarea id="learning-objectives" class="form-textarea" placeholder="e.g., Students will be able to identify the four stages of the water cycle and use sequencing words (first, next, then, finally)."></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="vocabulary" class="form-label">
+                                        <span>Key Vocabulary (comma separated)</span>
+                                        <span class="label-hint">Optional</span>
+                                    </label>
+                                    <input type="text" id="vocabulary" class="form-input" placeholder="e.g., evaporation, condensation, precipitation, collection" autocomplete="off">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="form-label">
+                                        <span>Scaffolds &amp; Supports</span>
+                                        <span class="label-hint">Select all that apply</span>
+                                    </label>
+                                    <div id="scaffolds" class="flex flex-wrap gap-2">
+                                        <button type="button" class="preset-tag" data-scaffold="text-to-speech for L1 and L2">Text-to-Speech</button>
+                                        <button type="button" class="preset-tag" data-scaffold="visual supports (images or icons) for each key term">Visual Supports</button>
+                                        <button type="button" class="preset-tag" data-scaffold="sentence frames and starters">Sentence Frames</button>
+                                        <button type="button" class="preset-tag" data-scaffold="a glossary with L1 translations">Bilingual Glossary</button>
+                                        <button type="button" class="preset-tag" data-scaffold="cognates highlighted where applicable">Cognate Highlighting</button>
+                                        <button type="button" class="preset-tag" data-scaffold="immediate, encouraging feedback on student responses">Interactive Feedback</button>
+                                        <button type="button" class="preset-tag" data-scaffold="a progress indicator">Progress Tracking</button>
+                                        <button type="button" class="preset-tag" data-scaffold="print-friendly styling">Print-Friendly</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="tone" class="form-label">
+                                        <span>Tone</span>
+                                        <span class="label-hint">Optional</span>
+                                    </label>
+                                    <input type="text" id="tone" list="tone-list" class="form-input" placeholder="e.g., warm and encouraging" autocomplete="off">
+                                    <datalist id="tone-list">
+                                        <option value="warm and encouraging"></option>
+                                        <option value="playful and energetic"></option>
+                                        <option value="calm and focused"></option>
+                                        <option value="curious and exploratory"></option>
+                                        <option value="age-appropriate and respectful"></option>
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label for="constraints" class="form-label">
+                                        <span>Additional Constraints</span>
+                                        <span class="label-hint">Optional</span>
+                                    </label>
+                                    <input type="text" id="constraints" class="form-input" placeholder="e.g., no external libraries, must work offline" autocomplete="off">
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="md:col-span-2 mt-4 flex flex-col sm:flex-row gap-3">
+                        <button type="button" id="generate-btn" class="btn btn-primary flex-1 py-3 text-base">
+                            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <span>Generate Prompt</span>
+                        </button>
+                        <button type="button" id="clear-btn" class="btn btn-secondary px-5 py-3">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                            <span>Clear</span>
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Output Section -->
-            <div id="output-section" class="panel p-6 md:p-8 mt-10 hidden">
-                <h2 class="text-2xl font-orbitron text-center mb-4">Your Generated Prompt</h2>
-                <div class="output-box p-4 rounded-lg font-mono text-sm">
-                    <p id="prompt-output"></p>
+            <!-- OUTPUT -->
+            <section id="output-section" class="panel panel-elevated p-6 md:p-8 mt-8 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-orbitron text-white">Generated Prompt</h2>
+                        <p class="text-sm text-slate-400 mt-1">Editable — refine before sending to your AI.</p>
+                    </div>
+                    <div id="prompt-stats" class="flex flex-wrap gap-2">
+                        <span class="stat-chip"><span>Chars</span><span class="chip-value" id="stat-chars">0</span></span>
+                        <span class="stat-chip"><span>Words</span><span class="chip-value" id="stat-words">0</span></span>
+                        <span class="stat-chip"><span>~Tokens</span><span class="chip-value" id="stat-tokens">0</span></span>
+                    </div>
                 </div>
-                <button type="button" id="copy-btn" class="btn-secondary w-full py-2 mt-4">Copy Prompt</button>
-            </div>
+
+                <div class="output-shell">
+                    <textarea id="prompt-output" class="output-textarea" spellcheck="false" aria-label="Generated prompt"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+                    <button type="button" id="copy-btn" class="btn btn-secondary py-2.5 text-sm">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <span>Copy</span>
+                    </button>
+                    <button type="button" id="download-btn" class="btn btn-secondary py-2.5 text-sm">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span>Download</span>
+                    </button>
+                    <button type="button" id="open-gemini-btn" class="btn btn-secondary py-2.5 text-sm">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        <span>Open in Gemini</span>
+                    </button>
+                    <button type="button" id="regenerate-btn" class="btn btn-secondary py-2.5 text-sm">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15A9 9 0 0 1 5.64 18.36L1 14"/></svg>
+                        <span>Regenerate</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- RECENT PROMPTS -->
+            <section id="recent-section" class="panel panel-elevated p-6 md:p-8 mt-8 hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg class="icon-lg text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <h2 class="text-xl font-orbitron text-white">Recent Prompts</h2>
+                    </div>
+                    <button type="button" id="clear-history-btn" class="btn btn-ghost px-3 py-1.5 text-xs">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        Clear History
+                    </button>
+                </div>
+                <div id="recent-list" class="space-y-2"></div>
+            </section>
         </div>
     </main>
-    <footer id="ip-footer" class="bg-black/50 text-center py-2 text-sm text-slate-300 backdrop-blur-sm">This is the intellectual property of Brandon Abdul Baki</footer>
+
+    <footer class="border-t border-cyan-400/10 mt-12 py-6 text-center text-xs text-slate-500">
+        <p>Created by <span class="text-slate-300 font-medium">Brandon Abdul Baki</span> &mdash; built around the RTCF prompting framework for ELL educators.</p>
+    </footer>
 
     <!-- Floating Contact Button -->
-    <div id="contact-flyout-container" class="fixed bottom-6 right-6 z-50">
-        <div id="contact-flyout" class="absolute bottom-full right-0 mb-2 w-64 panel p-4 hidden transition-all duration-300 ease-in-out transform translate-y-2 opacity-0">
-            <h3 class="font-bold text-center mb-3 text-lg font-orbitron">Contact Me</h3>
+    <div id="contact-flyout-container" class="fixed bottom-5 right-5 z-50">
+        <div id="contact-flyout" class="absolute bottom-full right-0 mb-3 w-64 panel p-4 hidden transform translate-y-2 opacity-0 transition-all duration-200 ease-out">
+            <h3 class="font-bold text-center mb-3 text-base font-orbitron text-white">Get in Touch</h3>
             <div class="flex flex-col space-y-2">
-                <button class="contact-action btn-secondary py-2" data-type="copy" data-value="+971507896519">Copy Phone Number</button>
-                <button class="contact-action btn-secondary py-2" data-type="copy" data-value="brandon.abaki@gmail.com">Copy Email Address</button>
-                <a href="https://www.linkedin.com/in/brandon-abdul-baki-19a81735b/" target="_blank" rel="noopener noreferrer" class="contact-action btn-secondary py-2 text-center">Message on LinkedIn</a>
+                <button class="contact-action btn btn-secondary py-2 text-sm" data-type="copy" data-value="+971507896519">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+                    Copy Phone
+                </button>
+                <button class="contact-action btn btn-secondary py-2 text-sm" data-type="copy" data-value="brandon.abaki@gmail.com">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Copy Email
+                </button>
+                <a href="https://www.linkedin.com/in/brandon-abdul-baki-19a81735b/" target="_blank" rel="noopener noreferrer" class="btn btn-secondary py-2 text-sm">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                    LinkedIn
+                </a>
             </div>
         </div>
-        <button type="button" id="contact-btn" class="btn-primary px-6 py-3 font-bold text-lg w-full">Contact Me</button>
+        <button type="button" id="contact-btn" class="btn btn-primary px-5 py-3 text-sm shadow-lg" aria-label="Contact">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Contact
+        </button>
     </div>
-
-    <!-- Confidential Modal -->
-    <div id="confidential-modal" class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-        <div class="panel p-8 max-w-md w-full relative mx-4">
-            <button id="close-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
-            <h2 class="text-2xl font-orbitron text-center mb-4">Confidential Sample</h2>
-            <p class="text-center text-slate-300 mb-6">This is a sample version of the tool. To access the full version, please contact the creator.</p>
-            <div class="flex flex-col space-y-3">
-                 <button class="contact-action btn-secondary py-2 text-base" data-type="copy" data-value="+971507896519">Copy Phone Number</button>
-                 <button class="contact-action btn-secondary py-2 text-base" data-type="copy" data-value="brandon.abaki@gmail.com">Copy Email Address</button>
-                 <a href="https://www.linkedin.com/in/brandon-abdul-baki-19a81735b/" target="_blank" rel="noopener noreferrer" class="contact-action btn-secondary py-2 text-base text-center">Message on LinkedIn</a>
-            </div>
-        </div>
-    </div>
-
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // This function checks for the presence of essential page elements.
-            // It is critical for page rendering and should not be modified or removed.
-            function validateCoreComponents() {
-                const headerBanner = document.getElementById('ip-banner');
-                const footerBanner = document.getElementById('ip-footer');
-                const expectedText = 'This is the intellectual property of Brandon Abdul Baki';
-                
-                if (!headerBanner || headerBanner.textContent.trim() !== expectedText || !footerBanner || footerBanner.textContent.trim() !== expectedText) {
-                    const form = document.getElementById('prompt-form');
-                    if(form) {
-                        form.innerHTML = '<div class="text-center text-red-500 font-bold p-8">Error: Critical component missing. Page functionality has been disabled. Please restore the original page content to continue.</div>';
-                    }
-                    return false;
-                }
-                return true;
+        (function() {
+            'use strict';
+
+            const STORAGE_KEY = 'ell-prompt-generator:v2';
+            const HISTORY_KEY = 'ell-prompt-generator:history:v2';
+            const MAX_HISTORY = 10;
+
+            const FIELDS = {
+                required: ['role', 'task', 'grade-level', 'proficiency', 'l1', 'l2', 'subject', 'lesson', 'time-required'],
+                optional: ['format', 'learning-objectives', 'vocabulary', 'tone', 'constraints']
+            };
+
+            const $ = (id) => document.getElementById(id);
+            const val = (id) => ($(id)?.value || '').trim();
+            const setVal = (id, v) => { const el = $(id); if (el) el.value = v || ''; };
+
+            // ---------- Toast notifications ----------
+            const toastContainer = $('toast-container');
+            function toast(message, type = 'info', duration = 2500) {
+                const el = document.createElement('div');
+                el.className = `toast toast-${type}`;
+                const iconPaths = {
+                    success: '<polyline points="20 6 9 17 4 12"/>',
+                    error: '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+                    info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'
+                };
+                el.innerHTML = `<svg class="icon toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">${iconPaths[type] || iconPaths.info}</svg><span>${message}</span>`;
+                toastContainer.appendChild(el);
+                setTimeout(() => {
+                    el.classList.add('toast-out');
+                    setTimeout(() => el.remove(), 250);
+                }, duration);
             }
 
-            if (!validateCoreComponents()) {
-                return; // Stop further script execution if validation fails
-            }
-
-            // Helper function for clipboard copying
-            function copyToClipboard(text, buttonElement) {
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';
-                textArea.style.top = '-9999px';
-                textArea.style.left = '-9999px';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
+            // ---------- Clipboard ----------
+            async function copyToClipboard(text) {
                 try {
-                    document.execCommand('copy');
-                    const originalText = buttonElement.textContent;
-                    buttonElement.textContent = 'Copied!';
-                    setTimeout(() => {
-                        buttonElement.textContent = originalText;
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy text: ', err);
-                }
-                document.body.removeChild(textArea);
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(text);
+                        return true;
+                    }
+                } catch (_) { /* fall through */ }
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+                document.body.removeChild(ta);
+                return ok;
             }
 
-            // Logic for Contact Flyout
-            const contactBtn = document.getElementById('contact-btn');
-            const contactFlyout = document.getElementById('contact-flyout');
-            
-            if(contactBtn && contactFlyout) {
-                contactBtn.addEventListener('click', () => {
-                    const isHidden = contactFlyout.classList.contains('hidden');
-                    if(isHidden) {
-                        contactFlyout.classList.remove('hidden');
-                        setTimeout(() => {
-                           contactFlyout.classList.remove('opacity-0', 'translate-y-2');
-                        }, 10);
+            // ---------- Scaffold tags ----------
+            const selectedScaffolds = new Set();
+            document.querySelectorAll('#scaffolds .preset-tag').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.scaffold;
+                    if (selectedScaffolds.has(key)) {
+                        selectedScaffolds.delete(key);
+                        btn.style.background = '';
+                        btn.style.borderColor = '';
+                        btn.style.color = '';
                     } else {
-                        contactFlyout.classList.add('opacity-0', 'translate-y-2');
-                        setTimeout(() => {
-                           contactFlyout.classList.add('hidden');
-                        }, 300);
+                        selectedScaffolds.add(key);
+                        btn.style.background = 'rgba(0, 217, 255, 0.15)';
+                        btn.style.borderColor = 'var(--accent-cyan)';
+                        btn.style.color = 'var(--accent-cyan)';
                     }
+                    persistForm();
                 });
+            });
 
-                // Close flyout if clicking outside
-                document.addEventListener('click', (event) => {
-                    if (!contactBtn.contains(event.target) && !contactFlyout.contains(event.target)) {
-                         contactFlyout.classList.add('opacity-0', 'translate-y-2');
-                        setTimeout(() => {
-                           contactFlyout.classList.add('hidden');
-                        }, 300);
+            // ---------- Form persistence ----------
+            function readForm() {
+                const data = {};
+                [...FIELDS.required, ...FIELDS.optional].forEach(id => { data[id] = val(id); });
+                data.scaffolds = [...selectedScaffolds];
+                return data;
+            }
+            function persistForm() {
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(readForm())); } catch (_) {}
+            }
+            function restoreForm() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return;
+                    const data = JSON.parse(raw);
+                    [...FIELDS.required, ...FIELDS.optional].forEach(id => { if (data[id]) setVal(id, data[id]); });
+                    if (Array.isArray(data.scaffolds)) {
+                        data.scaffolds.forEach(s => {
+                            const btn = document.querySelector(`#scaffolds .preset-tag[data-scaffold="${CSS.escape(s)}"]`);
+                            if (btn) btn.click();
+                        });
                     }
-                });
+                } catch (_) {}
+            }
+            document.querySelectorAll('#prompt-form input, #prompt-form textarea').forEach(el => {
+                el.addEventListener('input', persistForm);
+                el.addEventListener('focus', () => el.classList.remove('field-error'));
+            });
+
+            // ---------- Prompt building ----------
+            function buildPrompt(data) {
+                const lines = [];
+                lines.push(`Act as ${data.role}.`);
+                lines.push('');
+                lines.push(`Create a self-contained HTML resource for a ${data.proficiency}-level ${data.l2} learner in ${data['grade-level']} ${data.subject}. The student's home language (L1) is ${data.l1}.`);
+                lines.push('');
+                lines.push(`**Task:** Build a ${data.task} for a lesson on "${data.lesson}". The activity should be designed to take approximately ${data['time-required']}.`);
+
+                if (data.format) {
+                    lines.push('');
+                    lines.push(`**Format:** ${data.format}.`);
+                }
+
+                if (data['learning-objectives']) {
+                    lines.push('');
+                    lines.push(`**Learning Objectives:** ${data['learning-objectives']}`);
+                }
+
+                if (data.vocabulary) {
+                    lines.push('');
+                    lines.push(`**Key Vocabulary:** ${data.vocabulary}`);
+                }
+
+                const scaffolds = data.scaffolds || [];
+                if (scaffolds.length) {
+                    lines.push('');
+                    lines.push(`**Required Scaffolds & Supports:**`);
+                    scaffolds.forEach(s => lines.push(`- Include ${s}.`));
+                } else {
+                    lines.push('');
+                    lines.push(`**Required Scaffolds:** Include a text-to-speech button for both L1 (${data.l1}) and L2 (${data.l2}) on all relevant text content.`);
+                }
+
+                if (data.tone) {
+                    lines.push('');
+                    lines.push(`**Tone:** ${data.tone}.`);
+                }
+
+                if (data.constraints) {
+                    lines.push('');
+                    lines.push(`**Constraints:** ${data.constraints}.`);
+                }
+
+                lines.push('');
+                lines.push(`**Design Requirements:**`);
+                lines.push(`- Clean, modern, mobile-responsive design appropriate for ${data['grade-level']}.`);
+                lines.push(`- Accessible: semantic HTML, sufficient color contrast, keyboard navigation, ARIA labels where needed.`);
+                lines.push(`- All text should be culturally inclusive and free of idioms or references that may be unfamiliar to a ${data.proficiency} ELL student.`);
+                lines.push(`- Output a single, complete, runnable HTML file with all CSS and JavaScript inlined. No external dependencies unless absolutely necessary.`);
+
+                return lines.join('\n');
             }
 
-            // Reusable logic for contact actions (copy/link)
-            document.querySelectorAll('.contact-action').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const type = this.dataset.type;
-                    const value = this.dataset.value;
-                    if (type === 'copy') {
-                        copyToClipboard(value, this);
+            // ---------- Validation ----------
+            function validate(data) {
+                const missing = [];
+                FIELDS.required.forEach(id => {
+                    if (!data[id]) {
+                        missing.push(id);
+                        $(id)?.classList.add('field-error');
+                    }
+                });
+                return missing;
+            }
+
+            // ---------- Stats ----------
+            function updateStats(text) {
+                const chars = text.length;
+                const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+                const tokens = Math.ceil(chars / 4);
+                $('stat-chars').textContent = chars.toLocaleString();
+                $('stat-words').textContent = words.toLocaleString();
+                $('stat-tokens').textContent = tokens.toLocaleString();
+            }
+
+            // ---------- History ----------
+            function loadHistory() {
+                try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (_) { return []; }
+            }
+            function saveHistory(items) {
+                try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, MAX_HISTORY))); } catch (_) {}
+            }
+            function addToHistory(data, prompt) {
+                const items = loadHistory();
+                items.unshift({
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    data,
+                    prompt,
+                    summary: `${data.task} · ${data['grade-level']} ${data.subject} · ${data.proficiency}`
+                });
+                saveHistory(items);
+                renderHistory();
+            }
+            function renderHistory() {
+                const items = loadHistory();
+                const section = $('recent-section');
+                const list = $('recent-list');
+                if (!items.length) {
+                    section.classList.add('hidden');
+                    return;
+                }
+                section.classList.remove('hidden');
+                list.innerHTML = '';
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'recent-item flex items-center justify-between gap-3';
+                    const date = new Date(item.timestamp);
+                    const when = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' + date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                    div.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-slate-200 truncate">${escapeHtml(item.summary)}</div>
+                            <div class="recent-meta mt-0.5">${when}</div>
+                        </div>
+                        <div class="flex gap-1 flex-shrink-0">
+                            <button type="button" class="btn btn-ghost px-2 py-1 text-xs" data-action="load">Load</button>
+                            <button type="button" class="btn btn-ghost px-2 py-1 text-xs" data-action="copy">Copy</button>
+                            <button type="button" class="btn btn-ghost px-2 py-1 text-xs" data-action="delete" aria-label="Delete">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    `;
+                    div.querySelector('[data-action="load"]').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        loadFromHistory(item);
+                    });
+                    div.querySelector('[data-action="copy"]').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const ok = await copyToClipboard(item.prompt);
+                        toast(ok ? 'Copied to clipboard' : 'Copy failed', ok ? 'success' : 'error');
+                    });
+                    div.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        saveHistory(loadHistory().filter(i => i.id !== item.id));
+                        renderHistory();
+                    });
+                    list.appendChild(div);
+                });
+            }
+            function loadFromHistory(item) {
+                // Clear current scaffolds first
+                document.querySelectorAll('#scaffolds .preset-tag').forEach(btn => {
+                    if (selectedScaffolds.has(btn.dataset.scaffold)) btn.click();
+                });
+                [...FIELDS.required, ...FIELDS.optional].forEach(id => setVal(id, item.data[id]));
+                (item.data.scaffolds || []).forEach(s => {
+                    const btn = document.querySelector(`#scaffolds .preset-tag[data-scaffold="${CSS.escape(s)}"]`);
+                    if (btn) btn.click();
+                });
+                persistForm();
+                $('prompt-output').value = item.prompt;
+                updateStats(item.prompt);
+                $('output-section').classList.remove('hidden');
+                $('output-section').classList.add('reveal');
+                $('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Prompt loaded', 'success');
+            }
+            function escapeHtml(s) {
+                return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            }
+
+            // ---------- Generate ----------
+            const generateBtn = $('generate-btn');
+            const outputSection = $('output-section');
+            const promptOutput = $('prompt-output');
+
+            promptOutput.addEventListener('input', () => updateStats(promptOutput.value));
+
+            function doGenerate() {
+                const data = readForm();
+                const missing = validate(data);
+                if (missing.length) {
+                    toast(`Please complete ${missing.length} required field${missing.length === 1 ? '' : 's'}`, 'error');
+                    const first = $(missing[0]);
+                    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    first?.focus();
+                    return;
+                }
+
+                generateBtn.disabled = true;
+                const originalContent = generateBtn.innerHTML;
+                generateBtn.innerHTML = '<span class="spinner"></span><span>Generating…</span>';
+
+                setTimeout(() => {
+                    const prompt = buildPrompt(data);
+                    promptOutput.value = prompt;
+                    updateStats(prompt);
+                    outputSection.classList.remove('hidden');
+                    outputSection.classList.remove('reveal');
+                    void outputSection.offsetWidth;
+                    outputSection.classList.add('reveal');
+                    outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    addToHistory(data, prompt);
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = originalContent;
+                    toast('Prompt generated', 'success');
+                }, 280);
+            }
+
+            generateBtn.addEventListener('click', doGenerate);
+            $('regenerate-btn').addEventListener('click', doGenerate);
+
+            // ---------- Clear form ----------
+            $('clear-btn').addEventListener('click', () => {
+                if (!confirm('Clear all fields?')) return;
+                document.querySelectorAll('#prompt-form input').forEach(el => {
+                    el.value = el.id === 'l2' ? 'English' : '';
+                });
+                document.querySelectorAll('#prompt-form textarea').forEach(el => el.value = '');
+                document.querySelectorAll('#scaffolds .preset-tag').forEach(btn => {
+                    if (selectedScaffolds.has(btn.dataset.scaffold)) btn.click();
+                });
+                outputSection.classList.add('hidden');
+                persistForm();
+                toast('Form cleared', 'info');
+            });
+
+            // ---------- Output actions ----------
+            $('copy-btn').addEventListener('click', async () => {
+                const ok = await copyToClipboard(promptOutput.value);
+                toast(ok ? 'Copied to clipboard' : 'Copy failed', ok ? 'success' : 'error');
+            });
+
+            $('download-btn').addEventListener('click', () => {
+                const data = readForm();
+                const slug = (data.task || 'ell-prompt').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+                const filename = `ell-prompt-${slug}-${new Date().toISOString().slice(0, 10)}.txt`;
+                const blob = new Blob([promptOutput.value], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 0);
+                toast('Downloaded', 'success');
+            });
+
+            $('open-gemini-btn').addEventListener('click', async () => {
+                await copyToClipboard(promptOutput.value);
+                toast('Copied — paste into Gemini', 'success', 3500);
+                window.open('https://gemini.google.com/app', '_blank', 'noopener,noreferrer');
+            });
+
+            $('clear-history-btn').addEventListener('click', () => {
+                if (!confirm('Clear all prompt history?')) return;
+                saveHistory([]);
+                renderHistory();
+                toast('History cleared', 'info');
+            });
+
+            // ---------- Contact flyout ----------
+            const contactBtn = $('contact-btn');
+            const contactFlyout = $('contact-flyout');
+            let flyoutOpen = false;
+            function openFlyout() {
+                contactFlyout.classList.remove('hidden');
+                requestAnimationFrame(() => contactFlyout.classList.remove('opacity-0', 'translate-y-2'));
+                flyoutOpen = true;
+            }
+            function closeFlyout() {
+                contactFlyout.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => contactFlyout.classList.add('hidden'), 200);
+                flyoutOpen = false;
+            }
+            contactBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                flyoutOpen ? closeFlyout() : openFlyout();
+            });
+            document.addEventListener('click', (e) => {
+                if (flyoutOpen && !contactBtn.contains(e.target) && !contactFlyout.contains(e.target)) closeFlyout();
+            });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && flyoutOpen) closeFlyout(); });
+
+            document.querySelectorAll('.contact-action').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    if (this.dataset.type === 'copy') {
+                        const ok = await copyToClipboard(this.dataset.value);
+                        toast(ok ? 'Copied to clipboard' : 'Copy failed', ok ? 'success' : 'error');
                     }
                 });
             });
 
+            // ---------- Keyboard shortcuts ----------
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    doGenerate();
+                }
+            });
 
-            // Modal Logic
-            const confidentialModal = document.getElementById('confidential-modal');
-            const closeModalBtn = document.getElementById('close-modal-btn');
-
-            const showModal = () => confidentialModal && confidentialModal.classList.remove('hidden');
-            const hideModal = () => confidentialModal && confidentialModal.classList.add('hidden');
-            
-            if(closeModalBtn) closeModalBtn.addEventListener('click', hideModal);
-            if(confidentialModal) {
-                 confidentialModal.addEventListener('click', (e) => {
-                    if (e.target === confidentialModal) {
-                        hideModal();
-                    }
-                });
-            }
-
-
-            // Particle background animation
-            const particleContainer = document.getElementById('particle-container');
-            const particleCount = 75;
+            // ---------- Particle background ----------
+            const particleContainer = $('particle-container');
+            const particleCount = window.innerWidth < 640 ? 35 : 70;
             for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.style.position = 'absolute';
-                particle.style.width = `${Math.random() * 2 + 1}px`;
-                particle.style.height = particle.style.width;
-                particle.style.borderRadius = '50%';
-                particle.style.background = `rgba(0, 217, 255, ${Math.random() * 0.5 + 0.2})`;
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                const duration = Math.random() * 20 + 15;
-                const delay = Math.random() * -20;
-                particle.animate([
-                    { transform: `translateY(0px)` },
-                    { transform: `translateY(-100vh)` }
-                ], {
-                    duration: duration * 1000,
-                    delay: delay * 1000,
-                    iterations: Infinity,
-                    easing: 'linear'
-                });
-                particleContainer.appendChild(particle);
+                const p = document.createElement('div');
+                const size = Math.random() * 2 + 1;
+                const useMagenta = Math.random() > 0.7;
+                p.style.cssText = `position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:rgba(${useMagenta ? '216,0,255' : '0,217,255'},${Math.random() * 0.5 + 0.15});left:${Math.random() * 100}%;top:${Math.random() * 100}%;`;
+                p.animate(
+                    [{ transform: 'translateY(0)' }, { transform: 'translateY(-100vh)' }],
+                    { duration: (Math.random() * 25 + 15) * 1000, delay: Math.random() * -25000, iterations: Infinity, easing: 'linear' }
+                );
+                particleContainer.appendChild(p);
             }
 
-            // Prompt Generation Logic
-            const generateBtn = document.getElementById('generate-btn');
-            const outputSection = document.getElementById('output-section');
-            const promptOutput = document.getElementById('prompt-output');
-            const copyBtn = document.getElementById('copy-btn');
-
-            if(generateBtn) {
-                // Generate button now shows the modal
-                generateBtn.addEventListener('click', () => {
-                     // Get all values from the form to check if they are filled
-                    const role = document.getElementById('role').value;
-                    const task = document.getElementById('task').value;
-                    const format = document.getElementById('format').value;
-                    const gradeLevel = document.getElementById('grade-level').value;
-                    const proficiency = document.getElementById('proficiency').value;
-                    const l1 = document.getElementById('l1').value;
-                    const l2 = document.getElementById('l2').value;
-                    const subject = document.getElementById('subject').value;
-                    const lesson = document.getElementById('lesson').value;
-                    const timeRequired = document.getElementById('time-required').value;
-                     // Basic validation
-                    if (!role || !task || !gradeLevel || !proficiency || !l1 || !l2 || !subject || !lesson || !timeRequired) {
-                       // Using a custom, non-blocking alert for better UX.
-                        const customAlert = document.createElement('div');
-                        customAlert.textContent = 'Please fill out all fields before generating.';
-                        customAlert.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--accent-secondary); color: white; padding: 1rem 2rem; border-radius: 0.5rem; z-index: 1001; box-shadow: 0 5px 15px rgba(0,0,0,0.3);';
-                        document.body.appendChild(customAlert);
-                        setTimeout(() => {
-                            customAlert.remove();
-                        }, 3000);
-                        return;
-                    }
-
-                    // Build the prompt string
-                    let prompt = `Act as ${role}. Code an HTML file for a ${proficiency}-level ${l2} student in ${gradeLevel} ${subject}. The student's home language is ${l1}.\n\nThe task is to create a resource for a lesson on "${lesson}". Specifically, create a ${task}. The activity should be designed to take approximately ${timeRequired}.`;
-
-                    if (format) {
-                        prompt += ` The format should be ${format}.`;
-                    }
-
-                    prompt += `\n\nThis resource is for an English Language Learner, so it is critical that you include a text-to-speech button for L1 (${l1}) and L2 (${l2}) for all relevant text content. Ensure the design is clean, user-friendly, and appropriate for the specified grade level.`;
-                    
-                    // Display the output and blur it
-                    promptOutput.textContent = prompt;
-                    promptOutput.classList.add('blurred-text');
-                    outputSection.classList.remove('hidden');
-
-                    showModal();
-                });
-            }
-
-            if(copyBtn) {
-                // Copy button functionality (from original prompt output, now unused but kept for potential future use)
-                copyBtn.addEventListener('click', () => {
-                    copyToClipboard(promptOutput.textContent, copyBtn);
-                });
-            }
-        });
+            // ---------- Init ----------
+            restoreForm();
+            renderHistory();
+        })();
     </script>
 </body>
 </html>
-
-
